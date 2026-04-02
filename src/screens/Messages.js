@@ -20,15 +20,29 @@ export default class Messages extends BaseScreen {
     el.innerHTML = `
       <div class="screen-header">
         <h1>Messages</h1>
-        <button id="newMsgBtn" style="background:rgba(255,255,255,0.15);border:none;color:#fff;width:36px;height:36px;border-radius:10px;font-size:18px;cursor:pointer;">
+        <button id="newMsgBtn" class="header-action-btn" aria-label="New message">
           <i class="bi bi-plus-lg"></i>
         </button>
       </div>
       <div class="screen-body">
-        <div id="threadList">
+        <div class="screen-stack">
+        <div class="page-intro-card">
+          <div class="toolbar-row" style="justify-content:space-between;align-items:flex-start;">
+            <div>
+              <div class="page-intro-title">Parent conversations</div>
+              <div class="page-intro-text">Keep families updated with quick, professional communication.</div>
+            </div>
+            <div class="soft-icon">
+              <i class="bi bi-chat-square-dots"></i>
+            </div>
+          </div>
+        </div>
+
+        <div id="threadList" class="stack-list">
           <div class="skeleton" style="height:72px;margin-bottom:8px;"></div>
           <div class="skeleton" style="height:72px;margin-bottom:8px;"></div>
           <div class="skeleton" style="height:72px;"></div>
+        </div>
         </div>
       </div>
     `;
@@ -51,19 +65,19 @@ export default class Messages extends BaseScreen {
       }
 
       el.innerHTML = threads.map((t) => `
-        <div class="card" style="margin-bottom:8px;cursor:pointer;" data-id="${t.id}">
+        <div class="card" style="cursor:pointer;" data-id="${t.id}">
           <div style="display:flex;align-items:center;padding:14px 16px;gap:12px;">
-            <div class="icon" style="background:${t.unread ? "#d1e7dd" : "#f8f9fa"};color:${t.unread ? "#198754" : "#6c757d"};">
+            <div class="icon" style="background:${t.unread ? "#eef1ff" : "#f7f8ff"};color:${t.unread ? "#5d72f3" : "var(--text-muted)"};">
               <i class="bi bi-person-fill"></i>
             </div>
             <div style="flex:1;min-width:0;">
               <div style="display:flex;justify-content:space-between;align-items:center;">
                 <span style="font-weight:${t.unread ? "700" : "600"};font-size:14px;">${htmlEscape(t.participant_name || t.subject || "Message")}</span>
-                <span style="font-size:11px;color:#6c757d;">${formatDateTime(t.last_message_at || t.updated_at)}</span>
+                <span style="font-size:11px;color:var(--text-muted);">${formatDateTime(t.last_message_at || t.updated_at)}</span>
               </div>
-              <div style="font-size:13px;color:#6c757d;margin-top:2px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;">${htmlEscape(truncate(t.last_message || t.subject || "", 60))}</div>
+              <div style="font-size:13px;color:var(--text-muted);margin-top:2px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;">${htmlEscape(truncate(t.last_message || t.subject || "", 60))}</div>
             </div>
-            ${t.unread ? '<div style="width:10px;height:10px;background:#198754;border-radius:50%;flex-shrink:0;"></div>' : ""}
+            ${t.unread ? '<div style="width:10px;height:10px;background:#5d72f3;border-radius:50%;flex-shrink:0;"></div>' : ""}
           </div>
         </div>
       `).join("");

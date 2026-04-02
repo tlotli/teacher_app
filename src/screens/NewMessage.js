@@ -24,6 +24,21 @@ export default class NewMessage extends BaseScreen {
         <h1>New Message</h1>
       </div>
       <div class="screen-body">
+        <div class="screen-stack">
+        <div class="page-intro-card">
+          <div class="toolbar-row" style="justify-content:space-between;align-items:flex-start;">
+            <div>
+              <div class="page-intro-title">Compose clearly</div>
+              <div class="page-intro-text">Send a message to a parent or an entire class with a clean, structured flow.</div>
+            </div>
+            <div class="soft-icon">
+              <i class="bi bi-send"></i>
+            </div>
+          </div>
+        </div>
+
+        <div class="card">
+          <div class="card-body">
         <form id="newMsgForm">
           <div class="form-group">
             <label>Recipient Type</label>
@@ -56,6 +71,9 @@ export default class NewMessage extends BaseScreen {
             <i class="bi bi-send-fill"></i> Send Message
           </button>
         </form>
+          </div>
+        </div>
+        </div>
       </div>
     `;
 

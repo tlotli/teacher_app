@@ -10,11 +10,14 @@ export const attendanceApi = {
   getAttendance(classId, date) {
     return apiClient.get(`/teacher/attendance/${classId}/${date}`);
   },
-  bulkMark(records) {
-    return apiClient.post("/teacher/attendance/bulk", { records });
+  bulkMark(payload) {
+    return apiClient.post("/teacher/attendance/bulk", payload);
   },
   getTimetableToday() {
     return apiClient.get("/teacher/timetable/today");
+  },
+  getSubjects() {
+    return apiClient.get("/teacher/subjects");
   },
   checkIn(data = {}) {
     return apiClient.post("/teacher/check-in", data);

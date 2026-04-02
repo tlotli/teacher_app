@@ -75,6 +75,11 @@ class Router {
     document.body.style.paddingRight = "";
   }
 
+  resetScrollPosition() {
+    const screen = document.getElementById("screen-content");
+    if (screen) screen.scrollTo({ top: 0, left: 0, behavior: "auto" });
+  }
+
   async handleRoute() {
     const path = window.location.pathname;
     this.navigationId += 1;
@@ -101,6 +106,7 @@ class Router {
         console.error("Route handler failed:", path, e);
       }
       if (activeNavId !== this.navigationId) return;
+      this.resetScrollPosition();
       return;
     }
 
@@ -114,6 +120,7 @@ class Router {
           console.error("Route handler failed:", routePath, e);
         }
         if (activeNavId !== this.navigationId) return;
+        this.resetScrollPosition();
         return;
       }
     }

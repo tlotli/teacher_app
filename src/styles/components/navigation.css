@@ -1,39 +1,50 @@
 .bottom-nav {
   position: fixed;
-  bottom: 0;
-  left: 0;
-  right: 0;
-  background: #fff;
-  border-top: 1px solid #e9ecef;
+  bottom: 14px;
+  left: 50%;
+  transform: translateX(-50%);
+  width: min(calc(100% - 28px), 420px);
+  background: #281C9D;
+  border: 1px solid rgba(255, 255, 255, 0.15);
+  border-radius: 999px;
   display: flex;
-  justify-content: space-around;
-  padding: 6px 0 env(safe-area-inset-bottom, 8px);
+  justify-content: space-between;
+  align-items: center;
+  padding: 8px 8px calc(8px + env(safe-area-inset-bottom, 0px));
   z-index: 1000;
-  box-shadow: 0 -2px 12px rgba(0,0,0,0.06);
+  box-shadow: 0 24px 44px rgba(40, 28, 157, 0.3);
+  backdrop-filter: blur(20px);
 }
 
 .bottom-nav .nav-item {
   display: flex;
   flex-direction: column;
   align-items: center;
-  gap: 2px;
-  padding: 6px 12px;
-  color: #6c757d;
+  justify-content: center;
+  gap: 3px;
+  padding: 10px 12px;
+  min-width: 72px;
+  border-radius: 999px;
+  color: rgba(255, 255, 255, 0.75);
   text-decoration: none;
   font-size: 11px;
-  font-weight: 500;
+  font-weight: 600;
   cursor: pointer;
   position: relative;
-  transition: color 0.15s;
+  transition: color 0.15s ease, background 0.15s ease, transform 0.15s ease;
   border: none;
   background: none;
 }
 
-.bottom-nav .nav-item i { font-size: 22px; }
+.bottom-nav .nav-item i {
+  font-size: 18px;
+}
 
 .bottom-nav .nav-item.active {
-  color: #198754;
+  color: #1e1a3e;
   font-weight: 700;
+  background: #ffffff;
+  box-shadow: 0 10px 20px rgba(0, 0, 0, 0.2);
 }
 
 .bottom-nav .nav-item .badge-dot {
@@ -42,18 +53,18 @@
   right: 8px;
   width: 8px;
   height: 8px;
-  background: #dc3545;
+  background: #FF4267;
   border-radius: 50%;
   border: 2px solid #fff;
 }
 
 .bottom-nav .nav-item .badge-count {
   position: absolute;
-  top: 0;
-  right: 4px;
+  top: 4px;
+  right: 6px;
   min-width: 18px;
   height: 18px;
-  background: #dc3545;
+  background: linear-gradient(135deg, #ff6a83, #ff4f67);
   color: #fff;
   border-radius: 9px;
   font-size: 10px;
@@ -62,5 +73,24 @@
   align-items: center;
   justify-content: center;
   padding: 0 4px;
-  border: 2px solid #fff;
+  border: 2px solid #281C9D;
+}
+
+.bottom-nav .nav-menu-btn {
+  width: 52px;
+  min-width: 52px;
+  height: 52px;
+  padding: 0;
+  border-radius: 50%;
+  background: #ffffff;
+  color: #281C9D;
+  box-shadow: 0 14px 22px rgba(0, 0, 0, 0.18);
+}
+
+.bottom-nav .nav-menu-btn span {
+  display: none;
+}
+
+.bottom-nav .nav-menu-btn i {
+  font-size: 20px;
 }

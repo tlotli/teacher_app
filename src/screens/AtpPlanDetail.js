@@ -27,18 +27,20 @@ export default class AtpPlanDetail extends BaseScreen {
         <h1>ATP Plan</h1>
       </div>
       <div class="screen-body">
-        <div id="planHeader" class="card" style="margin-bottom:16px;">
+        <div class="screen-stack">
+        <div id="planHeader" class="card">
           <div class="card-body skeleton" style="height:80px;"></div>
         </div>
         <div class="section-title">Weekly Targets & Progress</div>
-        <div id="weeksList">
+        <div id="weeksList" class="stack-list">
           <div class="skeleton" style="height:80px;margin-bottom:8px;"></div>
           <div class="skeleton" style="height:80px;margin-bottom:8px;"></div>
         </div>
-        <div style="margin-top:16px;">
+        <div>
           <button id="saveProgressBtn" class="btn-primary" style="display:none;">
             <i class="bi bi-check-circle"></i> Save Progress
           </button>
+        </div>
         </div>
       </div>
     `;
@@ -72,8 +74,8 @@ export default class AtpPlanDetail extends BaseScreen {
 
     el.innerHTML = `
       <div class="card-body">
-        <h2 style="font-size:18px;font-weight:700;margin-bottom:4px;">${htmlEscape(this.plan.subject_name || this.plan.title || "")}</h2>
-        <p style="font-size:13px;color:#6c757d;margin-bottom:12px;">${htmlEscape(this.plan.grade_name || "")} · ${htmlEscape(this.plan.class_name || "")} · ${this.plan.total_weeks || 0} weeks</p>
+        <h2 style="font-size:20px;font-weight:800;margin-bottom:4px;">${htmlEscape(this.plan.subject_name || this.plan.title || "")}</h2>
+        <p style="font-size:13px;color:var(--text-muted);margin-bottom:14px;">${htmlEscape(this.plan.grade_name || "")} · ${htmlEscape(this.plan.class_name || "")} · ${this.plan.total_weeks || 0} weeks</p>
         <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:6px;">
           <span style="font-size:13px;font-weight:600;">Overall Progress</span>
           <span style="font-size:15px;font-weight:700;color:${statusColor};">${Math.round(pct)}%</span>
@@ -109,21 +111,21 @@ export default class AtpPlanDetail extends BaseScreen {
       const statusColor = actual >= target ? "#198754" : actual > 0 ? "#ffc107" : "#dee2e6";
 
       return `
-        <div class="card" style="margin-bottom:10px;">
+        <div class="card">
           <div class="card-body">
             <div style="display:flex;align-items:center;gap:10px;margin-bottom:8px;">
               <i class="bi ${statusIcon}" style="font-size:20px;color:${statusColor};"></i>
               <div style="flex:1;">
-                <div style="font-weight:600;font-size:14px;">Week ${weekNum}</div>
-                <div style="font-size:12px;color:#6c757d;">Target: ${target}%</div>
+                <div style="font-weight:700;font-size:14px;">Week ${weekNum}</div>
+                <div style="font-size:12px;color:var(--text-muted);">Target: ${target}%</div>
               </div>
               <span style="font-size:15px;font-weight:700;color:${statusColor};">${Math.round(actual)}%</span>
             </div>
-            ${topics ? `<div style="font-size:13px;color:#6c757d;margin-bottom:8px;padding:8px;background:#f8f9fa;border-radius:8px;">${htmlEscape(topics)}</div>` : ""}
-            <div style="display:flex;align-items:center;gap:8px;">
+            ${topics ? `<div class="card-soft-section" style="font-size:13px;color:var(--text-muted);margin-bottom:10px;">${htmlEscape(topics)}</div>` : ""}
+            <div class="range-wrap">
               <input type="range" min="0" max="100" step="5" value="${actual}" data-week="${weekNum}"
-                style="flex:1;accent-color:#198754;" />
-              <span class="range-label" style="font-size:13px;font-weight:600;min-width:36px;text-align:right;">${Math.round(actual)}%</span>
+                />
+              <span class="range-label range-value">${Math.round(actual)}%</span>
             </div>
           </div>
         </div>

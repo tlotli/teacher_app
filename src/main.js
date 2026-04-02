@@ -14,6 +14,11 @@ const app = new Framework7({
   theme: "auto",
 });
 
+app.views.create(".view-main", {
+  main: true,
+  router: false,
+});
+
 import { router } from "./router.js";
 import { storage } from "./services/storage.js";
 import { initCsrfProtection } from "./api/config.js";
@@ -34,6 +39,19 @@ import SchoolWorkCreate from "./screens/SchoolWorkCreate.js";
 import SchoolWorkDetail from "./screens/SchoolWorkDetail.js";
 import Profile from "./screens/Profile.js";
 
+import Demerits from "./screens/Demerits.js";
+
+// ─── Auth Guard ──────────────────────────────────────────────
+
+function requireAuth() {
+  const token = storage.getAuthToken();
+  if (!token) {
+    router.replace("/login");
+    return false;
+  }
+  return true;
+}
+
 // ─── Route Registration ──────────────────────────────────────
 
 router.register("/", async () => {
@@ -43,12 +61,18 @@ router.register("/", async () => {
 });
 
 router.register("/login", () => {
+  // Redirect already-authenticated users straight to dashboard
+  if (storage.getAuthToken()) {
+    router.replace("/dashboard");
+    return;
+  }
   const s = new Login();
   router.currentScreenInstance = s;
   s.render();
 });
 
 router.register("/dashboard", async () => {
+  if (!requireAuth()) return;
   const s = new Dashboard();
   router.currentScreenInstance = s;
   await s.render();
@@ -56,67 +80,85 @@ router.register("/dashboard", async () => {
 });
 
 router.register("/attendance", async () => {
+  if (!requireAuth()) return;
   const s = new Attendance();
   router.currentScreenInstance = s;
   await s.render();
 });
 
 router.register("/attendance/:classId", async (params) => {
+  if (!requireAuth()) return;
   const s = new AttendanceCapture();
   router.currentScreenInstance = s;
   await s.render(params);
 });
 
 router.register("/messages", async () => {
+  if (!requireAuth()) return;
   const s = new Messages();
   router.currentScreenInstance = s;
   await s.render();
 });
 
 router.register("/messages/new", async () => {
+  if (!requireAuth()) return;
   const s = new NewMessage();
   router.currentScreenInstance = s;
   await s.render();
 });
 
 router.register("/messages/:threadId", async (params) => {
+  if (!requireAuth()) return;
   const s = new MessageThread();
   router.currentScreenInstance = s;
   await s.render(params);
 });
 
 router.register("/atp", async () => {
+  if (!requireAuth()) return;
   const s = new AtpPlans();
   router.currentScreenInstance = s;
   await s.render();
 });
 
 router.register("/atp/:planId", async (params) => {
+  if (!requireAuth()) return;
   const s = new AtpPlanDetail();
   router.currentScreenInstance = s;
   await s.render(params);
 });
 
 router.register("/schoolwork", async () => {
+  if (!requireAuth()) return;
   const s = new SchoolWork();
   router.currentScreenInstance = s;
   await s.render();
 });
 
 router.register("/schoolwork/create", async () => {
+  if (!requireAuth()) return;
   const s = new SchoolWorkCreate();
   router.currentScreenInstance = s;
   await s.render();
 });
 
 router.register("/schoolwork/:id", async (params) => {
+  if (!requireAuth()) return;
   const s = new SchoolWorkDetail();
   router.currentScreenInstance = s;
   await s.render(params);
 });
 
 router.register("/profile", async () => {
+  if (!requireAuth()) return;
   const s = new Profile();
+  router.currentScreenInstance = s;
+  await s.render();
+});
+
+router.register("/demerits", async () => {
+  if (!requireAuth()) return;
+  const s = new Demerits();
   router.currentScreenInstance = s;
   await s.render();
 });

@@ -1,12 +1,11 @@
 import { router } from "../../router.js";
 import { storage } from "../../services/storage.js";
+import { openSidebar } from "./Sidebar.js";
 
 const TABS = [
-  { id: "home", icon: "bi-house-fill", label: "Home", path: "/dashboard" },
-  { id: "attendance", icon: "bi-clipboard-check", label: "Attendance", path: "/attendance" },
-  { id: "messages", icon: "bi-chat-dots-fill", label: "Messages", path: "/messages" },
-  { id: "atp", icon: "bi-bar-chart-line-fill", label: "ATP", path: "/atp" },
-  { id: "work", icon: "bi-journal-text", label: "Work", path: "/schoolwork" },
+  { id: "home",       icon: "bi-house-fill",       label: "Home",       path: "/dashboard" },
+  { id: "attendance", icon: "bi-clipboard-check",  label: "Attendance", path: "/attendance" },
+  { id: "messages",   icon: "bi-chat-dots-fill",   label: "Messages",   path: "/messages" },
 ];
 
 export function renderBottomNav() {
@@ -20,7 +19,8 @@ export function renderBottomNav() {
   const currentPath = router.getCurrentPath();
   const unread = storage.getUnreadCount();
 
-  nav.innerHTML = TABS.map((tab) => {
+  // 3 main tabs + menu button
+  const tabsHTML = TABS.map((tab) => {
     const isActive = currentPath.startsWith(tab.path);
     const badge = tab.id === "messages" && unread > 0
       ? `<span class="badge-count">${unread > 99 ? "99+" : unread}</span>`
@@ -34,16 +34,23 @@ export function renderBottomNav() {
     `;
   }).join("");
 
-  nav.querySelectorAll(".nav-item").forEach((btn) => {
+  nav.style.display = "flex"; // always restore after hideBottomNav
+  nav.innerHTML = tabsHTML + `
+    <button class="nav-item nav-menu-btn" id="navMenuBtn">
+      <i class="bi bi-grid-3x3-gap-fill"></i>
+      <span>More</span>
+    </button>
+  `;
+
+  nav.querySelectorAll(".nav-item[data-path]").forEach((btn) => {
     btn.addEventListener("click", () => {
       const path = btn.dataset.path;
-      if (currentPath === path) {
-        router.reload();
-      } else {
-        router.navigate(path);
-      }
+      if (currentPath === path) router.reload();
+      else router.navigate(path);
     });
   });
+
+  document.getElementById("navMenuBtn")?.addEventListener("click", openSidebar);
 }
 
 export function hideBottomNav() {

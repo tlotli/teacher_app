@@ -1,11 +1,10 @@
 import { BaseScreen } from "../utils/screen-base.js";
 import { setScreenSignal } from "../api/config.js";
-import { router } from "../router.js";
 import { schoolworkApi } from "../api/schoolwork.js";
 import { renderBottomNav } from "../components/navigation/BottomNav.js";
 import { errorHandler } from "../utils/error-handler.js";
 import { htmlEscape } from "../utils/html-escape.js";
-import { formatDate } from "../utils/helpers.js";
+import { formatDateTime } from "../utils/helpers.js";
 
 export default class SchoolWorkDetail extends BaseScreen {
   constructor() {
@@ -25,14 +24,34 @@ export default class SchoolWorkDetail extends BaseScreen {
         <h1>Submissions</h1>
       </div>
       <div class="screen-body">
-        <div id="submissionsList">
-          <div class="skeleton" style="height:64px;margin-bottom:8px;"></div>
-          <div class="skeleton" style="height:64px;margin-bottom:8px;"></div>
+        <div class="screen-stack">
+          <div class="page-intro-card">
+            <div class="toolbar-row" style="justify-content:space-between;align-items:flex-start;">
+              <div>
+                <div class="page-intro-title">Review learner work</div>
+                <div class="page-intro-text">Learners submit from the parent app. Every upload appears here so you can review it, assign a score, and leave feedback.</div>
+              </div>
+              <div class="soft-icon">
+                <i class="bi bi-check2-square"></i>
+              </div>
+            </div>
+          </div>
+
+          <div id="submissionsList" class="stack-list">
+            <div class="skeleton" style="height:108px;margin-bottom:8px;"></div>
+            <div class="skeleton" style="height:108px;margin-bottom:8px;"></div>
+          </div>
         </div>
       </div>
     `;
 
     this._load();
+  }
+
+  _studentName(submission) {
+    return [submission.student?.first_name, submission.student?.last_name]
+      .filter(Boolean)
+      .join(" ") || submission.student_name || "Student";
   }
 
   async _load() {
@@ -44,48 +63,90 @@ export default class SchoolWorkDetail extends BaseScreen {
       const el = document.getElementById("submissionsList");
 
       if (!subs.length) {
-        el.innerHTML = `<div class="empty-state"><i class="bi bi-inbox"></i><p>No submissions yet</p></div>`;
+        el.innerHTML = `
+          <div class="empty-state">
+            <i class="bi bi-inbox"></i>
+            <p>No submissions yet</p>
+            <p class="empty-state-caption">There is no teacher upload button on this screen. Parents and learners submit from the parent app, and their work will appear here automatically.</p>
+          </div>
+        `;
         return;
       }
 
-      el.innerHTML = subs.map((s) => `
-        <div class="card" style="margin-bottom:8px;">
-          <div class="card-body">
-            <div style="display:flex;align-items:center;gap:12px;">
-              <div style="width:36px;height:36px;background:#e9ecef;border-radius:10px;display:flex;align-items:center;justify-content:center;font-weight:700;font-size:13px;color:#6c757d;">
-                ${htmlEscape((s.student_name || "??")[0])}
-              </div>
-              <div style="flex:1;">
-                <div style="font-weight:600;font-size:14px;">${htmlEscape(s.student_name || "Student")}</div>
-                <div style="font-size:12px;color:#6c757d;">Submitted ${formatDate(s.submitted_at || s.created_at)}</div>
-              </div>
-              <div style="text-align:right;">
-                ${s.grade_score != null
-                  ? `<span style="font-weight:700;font-size:15px;color:#198754;">${s.grade_score}</span>`
-                  : `<button class="grade-btn btn-outline" data-id="${s.id}" style="padding:6px 12px;font-size:12px;">Grade</button>`
-                }
-              </div>
-            </div>
-            <div id="gradeForm-${s.id}" style="display:none;margin-top:12px;padding-top:12px;border-top:1px solid #f0f0f0;">
-              <div style="display:flex;gap:8px;align-items:end;">
-                <div class="form-group" style="flex:1;margin:0;">
-                  <label style="font-size:12px;">Score</label>
-                  <input type="number" class="form-control grade-score" data-id="${s.id}" placeholder="0" min="0" style="padding:8px;" />
+      el.innerHTML = subs.map((submission) => {
+        const studentName = this._studentName(submission);
+        const admissionNo = submission.student?.admission_no;
+        const isReviewed = submission.grade_score != null;
+        const nameParts = studentName.split(" ").filter(Boolean);
+        const initials = `${nameParts[0]?.charAt(0) || "S"}${nameParts[nameParts.length - 1]?.charAt(0) || ""}`;
+
+        return `
+          <div class="card">
+            <div class="card-body">
+              <div class="submission-card-top">
+                <div class="student-avatar-sm">
+                  ${htmlEscape(initials)}
                 </div>
-                <div class="form-group" style="flex:2;margin:0;">
-                  <label style="font-size:12px;">Feedback</label>
-                  <input type="text" class="form-control grade-feedback" data-id="${s.id}" placeholder="Optional feedback" style="padding:8px;" />
+                <div style="flex:1;min-width:0;">
+                  <div class="submission-card-title">${htmlEscape(studentName)}</div>
+                  <div class="submission-card-meta">
+                    ${htmlEscape(admissionNo ? `Admission ${admissionNo}` : "Learner submission")}
+                    <span class="submission-dot"></span>
+                    Submitted ${htmlEscape(formatDateTime(submission.submitted_at || submission.created_at))}
+                  </div>
                 </div>
-                <button class="save-grade-btn btn-primary" data-id="${s.id}" style="width:auto;padding:8px 16px;font-size:13px;">Save</button>
+                <div class="submission-card-score ${isReviewed ? "is-reviewed" : ""}">
+                  ${isReviewed ? `${submission.grade_score}%` : "Pending"}
+                </div>
+              </div>
+
+              <div class="submission-card-actions">
+                <button class="grade-btn btn-outline" data-id="${submission.id}">
+                  <i class="bi bi-pencil-square"></i>
+                  ${isReviewed ? "Update grade" : "Review & grade"}
+                </button>
+              </div>
+
+              <div id="gradeForm-${submission.id}" class="submission-grade-form" style="display:${isReviewed ? "block" : "none"};">
+                <div class="submission-grade-grid">
+                  <div class="form-group" style="margin:0;">
+                    <label style="font-size:12px;">Score</label>
+                    <input
+                      type="number"
+                      class="form-control grade-score"
+                      data-id="${submission.id}"
+                      placeholder="0"
+                      min="0"
+                      value="${submission.grade_score ?? ""}"
+                      style="padding:10px 12px;"
+                    />
+                  </div>
+                  <div class="form-group" style="margin:0;">
+                    <label style="font-size:12px;">Feedback</label>
+                    <input
+                      type="text"
+                      class="form-control grade-feedback"
+                      data-id="${submission.id}"
+                      placeholder="Optional feedback"
+                      value="${htmlEscape(submission.teacher_feedback || "")}"
+                      style="padding:10px 12px;"
+                    />
+                  </div>
+                </div>
+                <button class="save-grade-btn btn-primary btn-inline" data-id="${submission.id}">
+                  <i class="bi bi-check-circle"></i>
+                  Save Feedback
+                </button>
               </div>
             </div>
           </div>
-        </div>
-      `).join("");
+        `;
+      }).join("");
 
       el.querySelectorAll(".grade-btn").forEach((btn) => {
         btn.addEventListener("click", () => {
           const form = document.getElementById(`gradeForm-${btn.dataset.id}`);
+          if (!form) return;
           form.style.display = form.style.display === "none" ? "block" : "none";
         });
       });
@@ -105,7 +166,7 @@ export default class SchoolWorkDetail extends BaseScreen {
 
     try {
       await schoolworkApi.gradeSubmission(submissionId, {
-        grade_score: score ? parseInt(score) : null,
+        grade_score: score ? parseInt(score, 10) : null,
         teacher_feedback: feedback || null,
       });
       if (!this.isActive) return;

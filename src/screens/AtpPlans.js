@@ -20,13 +20,26 @@ export default class AtpPlans extends BaseScreen {
         <h1>ATP Plans</h1>
       </div>
       <div class="screen-body">
+        <div class="screen-stack">
+        <div class="page-intro-card">
+          <div class="toolbar-row" style="justify-content:space-between;align-items:flex-start;">
+            <div>
+              <div class="page-intro-title">Track curriculum progress</div>
+              <div class="page-intro-text">See targets, monitor plan completion, and stay aligned with what needs to be taught.</div>
+            </div>
+            <div class="soft-icon">
+              <i class="bi bi-bar-chart-line"></i>
+            </div>
+          </div>
+        </div>
         <div id="atpSummary" style="margin-bottom:16px;">
           <div class="card"><div class="card-body skeleton" style="height:60px;"></div></div>
         </div>
         <div class="section-title">Your Plans</div>
-        <div id="planList">
+        <div id="planList" class="stack-list">
           <div class="skeleton" style="height:80px;margin-bottom:8px;"></div>
           <div class="skeleton" style="height:80px;margin-bottom:8px;"></div>
+        </div>
         </div>
       </div>
     `;
@@ -59,7 +72,7 @@ export default class AtpPlans extends BaseScreen {
     const avg = Math.round(summary.average_progress || 0);
 
     el.innerHTML = `
-      <div class="card" style="background:linear-gradient(135deg,#198754,#0f5132);color:#fff;">
+      <div class="card" style="background:linear-gradient(135deg,#6b7df7,#5165e9);color:#fff;border:none;box-shadow:0 18px 34px rgba(93,114,243,0.28);">
         <div class="card-body">
           <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:8px;">
             <span style="font-weight:600;">Overall Progress</span>
@@ -91,12 +104,12 @@ export default class AtpPlans extends BaseScreen {
       const statusColor = pct >= 80 ? "#198754" : pct >= 50 ? "#ffc107" : "#dc3545";
 
       return `
-        <div class="card" style="margin-bottom:10px;cursor:pointer;" data-id="${p.id}">
+        <div class="card" style="cursor:pointer;" data-id="${p.id}">
           <div class="card-body">
             <div style="display:flex;justify-content:space-between;align-items:start;">
               <div>
-                <div style="font-weight:600;font-size:15px;">${htmlEscape(p.subject_name || p.title || "")}</div>
-                <div style="font-size:13px;color:#6c757d;margin-top:2px;">${htmlEscape(p.grade_name || "")} · ${htmlEscape(p.class_name || "")}</div>
+                <div style="font-weight:700;font-size:15px;">${htmlEscape(p.subject_name || p.title || "")}</div>
+                <div style="font-size:13px;color:var(--text-muted);margin-top:2px;">${htmlEscape(p.grade_name || "")} · ${htmlEscape(p.class_name || "")}</div>
               </div>
               <span class="badge-pill" style="background:${statusColor}20;color:${statusColor};">${Math.round(pct)}%</span>
             </div>

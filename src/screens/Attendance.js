@@ -20,6 +20,19 @@ export default class Attendance extends BaseScreen {
         <h1>Attendance</h1>
       </div>
       <div class="screen-body">
+        <div class="screen-stack">
+        <div class="page-intro-card">
+          <div class="toolbar-row" style="justify-content:space-between;align-items:flex-start;">
+            <div>
+              <div class="page-intro-title">Take attendance fast</div>
+              <div class="page-intro-text">Open a class, mark learners, and keep the register clean and quick.</div>
+            </div>
+            <div class="soft-icon">
+              <i class="bi bi-clipboard-check"></i>
+            </div>
+          </div>
+        </div>
+
         <div class="section-title">Your Classes</div>
         <div id="classList" class="card">
           <div style="padding:16px;">
@@ -27,6 +40,7 @@ export default class Attendance extends BaseScreen {
             <div class="skeleton" style="height:64px;margin-bottom:8px;"></div>
             <div class="skeleton" style="height:64px;"></div>
           </div>
+        </div>
         </div>
       </div>
     `;
@@ -49,14 +63,14 @@ export default class Attendance extends BaseScreen {
 
       el.innerHTML = classes.map((cls) => `
         <div class="list-item" data-id="${cls.id}">
-          <div class="icon" style="background:#d1e7dd;color:#198754;">
+          <div class="icon" style="background:#edf2ff;color:#5d72f3;">
             <i class="bi bi-people-fill"></i>
           </div>
           <div class="content">
             <div class="title">${htmlEscape(cls.name)}</div>
             <div class="subtitle">${cls.student_count || 0} students · Grade ${htmlEscape(cls.grade || "")}</div>
           </div>
-          <i class="bi bi-chevron-right" style="color:#6c757d;"></i>
+          <i class="bi bi-chevron-right" style="color:var(--text-muted);"></i>
         </div>
       `).join("");
 

@@ -14,6 +14,8 @@ export default class AttendanceCapture extends BaseScreen {
     this.students = [];
     this.records = {};
     this.date = today();
+    this.periods = [];
+    this.selectedPeriodId = null;
   }
 
   async render(params) {
@@ -28,26 +30,49 @@ export default class AttendanceCapture extends BaseScreen {
         <h1>Mark Attendance</h1>
       </div>
       <div class="screen-body">
-        <div style="display:flex;gap:8px;margin-bottom:16px;">
-          <input type="date" id="dateInput" class="form-control" value="${this.date}" style="flex:1;" />
+        <div class="screen-stack">
+
+        <div class="attendance-controls-card card">
+          <div class="card-body">
+            <div class="form-group" style="margin-bottom:12px;">
+              <label>Date</label>
+              <input type="date" id="dateInput" class="form-control" value="${this.date}" />
+            </div>
+            <div class="form-group" style="margin-bottom:0;">
+              <label>Period <span style="color:var(--text-muted);font-weight:400;font-size:12px;">(optional)</span></label>
+              <div id="periodPills" class="period-pills">
+                <span class="period-pill-skeleton"></span>
+              </div>
+            </div>
+          </div>
         </div>
-        <div id="studentList">
-          <div class="skeleton" style="height:56px;margin-bottom:8px;"></div>
-          <div class="skeleton" style="height:56px;margin-bottom:8px;"></div>
-          <div class="skeleton" style="height:56px;"></div>
+
+        <div class="toolbar-row">
+          <button id="markAllPresent" class="btn-outline" style="flex:1;font-size:13px;">
+            <i class="bi bi-check2-circle"></i> All Present
+          </button>
+          <button id="markAllAbsent" class="btn-outline" style="flex:1;font-size:13px;color:#ff4f67;border-color:#ffd6de;">
+            <i class="bi bi-x-circle"></i> All Absent
+          </button>
         </div>
-        <div style="margin-top:16px;">
+
+        <div id="studentList" class="stack-list">
+          <div class="skeleton" style="height:92px;margin-bottom:8px;"></div>
+          <div class="skeleton" style="height:92px;margin-bottom:8px;"></div>
+          <div class="skeleton" style="height:92px;"></div>
+        </div>
+
+        <div class="attendance-save-wrap">
           <button id="saveBtn" class="btn-primary" disabled>
             <i class="bi bi-check-circle"></i> Save Attendance
           </button>
         </div>
-        <div style="display:flex;gap:8px;margin-top:8px;">
-          <button id="markAllPresent" class="btn-outline" style="flex:1;font-size:13px;">All Present</button>
-          <button id="markAllAbsent" class="btn-outline" style="flex:1;font-size:13px;color:#dc3545;border-color:#dc3545;">All Absent</button>
+
         </div>
       </div>
     `;
 
+    document.getElementById("goBackBtn")?.addEventListener("click", () => router.back());
     document.getElementById("dateInput")?.addEventListener("change", (e) => {
       this.date = e.target.value;
       this._loadStudents();
@@ -57,7 +82,48 @@ export default class AttendanceCapture extends BaseScreen {
     document.getElementById("markAllAbsent")?.addEventListener("click", () => this._markAll("absent"));
     document.getElementById("saveBtn")?.addEventListener("click", () => this._save());
 
+    this._loadPeriods();
     this._loadStudents();
+  }
+
+  async _loadPeriods() {
+    try {
+      const res = await attendanceApi.getTimetableToday();
+      if (!this.isActive) return;
+      this.periods = res.data?.data?.periods || [];
+      this._renderPeriodPills();
+    } catch {
+      if (!this.isActive) return;
+      document.getElementById("periodPills").innerHTML = '<span style="font-size:12px;color:var(--text-muted);">No periods available</span>';
+    }
+  }
+
+  _renderPeriodPills() {
+    const container = document.getElementById("periodPills");
+    if (!container) return;
+
+    if (!this.periods.length) {
+      container.innerHTML = '<span style="font-size:12px;color:var(--text-muted);">No periods configured</span>';
+      return;
+    }
+
+    container.innerHTML = `
+      <button class="period-pill ${this.selectedPeriodId === null ? "active" : ""}" data-period="null">All Day</button>
+      ${this.periods.map((p) => `
+        <button class="period-pill ${this.selectedPeriodId === p.id ? "active" : ""}" data-period="${p.id}">
+          ${htmlEscape(p.name)}
+        </button>
+      `).join("")}
+    `;
+
+    container.querySelectorAll(".period-pill").forEach((btn) => {
+      btn.addEventListener("click", () => {
+        const val = btn.dataset.period;
+        this.selectedPeriodId = val === "null" ? null : parseInt(val);
+        this._renderPeriodPills();
+        this._loadStudents();
+      });
+    });
   }
 
   async _loadStudents() {
@@ -72,9 +138,9 @@ export default class AttendanceCapture extends BaseScreen {
       const existing = attendanceRes.data.data || [];
 
       this.records = {};
-      existing.forEach((r) => {
-        this.records[r.student_id] = r.status;
-      });
+      existing
+        .filter((r) => this.selectedPeriodId === null || r.period_id === this.selectedPeriodId)
+        .forEach((r) => { this.records[r.student_id] = r.status; });
 
       this._renderStudents();
     } catch (err) {
@@ -96,23 +162,33 @@ export default class AttendanceCapture extends BaseScreen {
 
     el.innerHTML = this.students.map((s) => {
       const status = this.records[s.id] || "present";
+      const learnerName = `${s.first_name || ""} ${s.last_name || ""}`.trim();
+      const initials = `${(s.first_name || "").charAt(0)}${(s.last_name || "").charAt(0)}`;
+
       return `
-        <div class="card" style="margin-bottom:8px;">
-          <div style="display:flex;align-items:center;padding:12px 16px;gap:12px;">
-            <div style="width:36px;height:36px;background:#e9ecef;border-radius:10px;display:flex;align-items:center;justify-content:center;font-weight:700;font-size:14px;color:#6c757d;">
-              ${htmlEscape((s.first_name || "")[0] + (s.last_name || "")[0])}
+        <div class="card attendance-student-card">
+          <div class="card-body">
+            <div class="attendance-student-row">
+              <div class="student-avatar-sm">
+                ${htmlEscape(initials)}
+              </div>
+              <div class="attendance-student-copy">
+                <div class="attendance-student-name">${htmlEscape(learnerName || "Learner")}</div>
+                <div class="attendance-student-note">
+                  ${htmlEscape(s.admission_no ? `Admission ${s.admission_no}` : "Tap a status to mark attendance")}
+                </div>
+              </div>
             </div>
-            <div style="flex:1;min-width:0;">
-              <div style="font-weight:600;font-size:14px;">${htmlEscape(s.first_name + " " + s.last_name)}</div>
-            </div>
-            <div style="display:flex;gap:4px;" data-student="${s.id}">
+
+            <div class="attendance-status-grid status-picker" data-student="${s.id}">
               ${["present", "late", "absent", "excused"].map((st) => `
-                <button class="status-btn ${status === st ? "active" : ""}" data-status="${st}" style="
-                  padding:6px 10px;border-radius:8px;font-size:11px;font-weight:600;border:1.5px solid transparent;cursor:pointer;
-                  background:${status === st ? this._statusColor(st) : "#f8f9fa"};
-                  color:${status === st ? "#fff" : "#6c757d"};
-                  border-color:${status === st ? this._statusColor(st) : "#dee2e6"};
-                ">${st[0].toUpperCase()}</button>
+                <button class="status-btn attendance-status-btn ${status === st ? "active" : ""}" data-status="${st}" style="
+                  background:${status === st ? this._statusColor(st) : "#f7f7f8"};
+                  color:${status === st ? "#fff" : "var(--text-muted)"};
+                  border-color:${status === st ? this._statusColor(st) : "#ececef"};
+                ">
+                  <span>${this._statusLabel(st)}</span>
+                </button>
               `).join("")}
             </div>
           </div>
@@ -137,10 +213,12 @@ export default class AttendanceCapture extends BaseScreen {
     return colors[status] || "#6c757d";
   }
 
+  _statusLabel(status) {
+    return { present: "Present", late: "Late", absent: "Absent", excused: "Excused" }[status] || status;
+  }
+
   _markAll(status) {
-    this.students.forEach((s) => {
-      this.records[s.id] = status;
-    });
+    this.students.forEach((s) => { this.records[s.id] = status; });
     this._renderStudents();
   }
 
@@ -149,18 +227,27 @@ export default class AttendanceCapture extends BaseScreen {
     btn.disabled = true;
     btn.innerHTML = '<span class="spinner-border spinner-border-sm"></span> Saving…';
 
-    const records = this.students.map((s) => ({
-      student_id: s.id,
-      class_id: parseInt(this.classId),
+    const payload = {
+      school_class_id: parseInt(this.classId),
       date: this.date,
-      status: this.records[s.id] || "present",
-    }));
+      ...(this.selectedPeriodId ? { period_id: this.selectedPeriodId } : {}),
+      records: this.students.map((s) => ({
+        student_id: s.id,
+        status: this.records[s.id] || "present",
+      })),
+    };
 
     try {
-      await attendanceApi.bulkMark(records);
+      await attendanceApi.bulkMark(payload);
       if (!this.isActive) return;
       errorHandler.showSuccess("Attendance saved!");
       btn.innerHTML = '<i class="bi bi-check-circle-fill"></i> Saved';
+      setTimeout(() => {
+        if (this.isActive && btn) {
+          btn.disabled = false;
+          btn.innerHTML = '<i class="bi bi-check-circle"></i> Save Attendance';
+        }
+      }, 2000);
     } catch (err) {
       if (!this.isActive) return;
       errorHandler.showError(err.response?.data?.message || "Failed to save");

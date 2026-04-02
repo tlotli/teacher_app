@@ -17,9 +17,10 @@ function getCsrfToken() {
   return match ? decodeURIComponent(match[1]) : null;
 }
 
-function buildHeaders(method, extraHeaders = {}) {
+function buildHeaders(method, data, extraHeaders = {}) {
+  const isFormData = data instanceof FormData;
   const headers = {
-    "Content-Type": "application/json",
+    ...(!isFormData ? { "Content-Type": "application/json" } : {}),
     Accept: "application/json",
     ...extraHeaders,
   };
@@ -111,7 +112,7 @@ async function request(method, url, { params, data, headers: extraHeaders, signa
     });
   }
 
-  const headers = buildHeaders(method, extraHeaders);
+  const headers = buildHeaders(method, data, extraHeaders);
   const { signal, clearTimeout } = buildSignal(customSignal);
 
   const config = { method, url: fullUrl.toString(), data, headers };
@@ -126,7 +127,7 @@ async function request(method, url, { params, data, headers: extraHeaders, signa
   };
 
   if (data !== undefined && data !== null) {
-    fetchOptions.body = typeof data === "string" ? data : JSON.stringify(data);
+    fetchOptions.body = (data instanceof FormData) ? data : (typeof data === "string" ? data : JSON.stringify(data));
   }
 
   try {

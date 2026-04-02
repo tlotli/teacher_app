@@ -24,13 +24,13 @@ export default class MessageThread extends BaseScreen {
         <button class="back-btn" id="goBackBtn"><i class="bi bi-arrow-left"></i></button>
         <h1 id="threadTitle">Message</h1>
       </div>
-      <div id="messageList" style="padding:16px;min-height:calc(100vh - 180px);">
+      <div id="messageList" style="padding:16px 16px 180px;min-height:calc(100vh - 180px);">
         <div class="skeleton" style="height:60px;margin-bottom:8px;"></div>
         <div class="skeleton" style="height:60px;margin-bottom:8px;"></div>
       </div>
-      <div style="position:fixed;bottom:64px;left:0;right:0;background:#fff;border-top:1px solid #e9ecef;padding:12px 16px;display:flex;gap:8px;">
+      <div class="floating-composer">
         <input type="text" id="replyInput" class="form-control" placeholder="Type a message…" style="flex:1;margin:0;" />
-        <button id="sendBtn" style="background:#198754;color:#fff;border:none;width:44px;height:44px;border-radius:12px;font-size:18px;cursor:pointer;">
+        <button id="sendBtn" class="circle-send-btn">
           <i class="bi bi-send-fill"></i>
         </button>
       </div>
@@ -58,14 +58,11 @@ export default class MessageThread extends BaseScreen {
       el.innerHTML = messages.map((m) => {
         const isMine = m.is_mine || m.is_sender;
         return `
-          <div style="display:flex;${isMine ? "justify-content:flex-end;" : ""}margin-bottom:12px;">
-            <div style="max-width:80%;padding:12px 16px;border-radius:16px;${isMine
-              ? "background:#198754;color:#fff;border-bottom-right-radius:4px;"
-              : "background:#f0f0f0;color:#1a1a2e;border-bottom-left-radius:4px;"
-            }">
-              ${!isMine ? `<div style="font-size:12px;font-weight:600;margin-bottom:4px;opacity:0.8;">${htmlEscape(m.sender_name || "")}</div>` : ""}
+          <div class="message-bubble-row ${isMine ? "mine" : ""}">
+            <div class="message-bubble ${isMine ? "mine" : "other"}">
+              ${!isMine ? `<div style="font-size:12px;font-weight:700;margin-bottom:4px;color:var(--text-muted);">${htmlEscape(m.sender_name || "")}</div>` : ""}
               <div style="font-size:14px;">${htmlEscape(m.body || m.content || "")}</div>
-              <div style="font-size:11px;opacity:0.6;margin-top:4px;text-align:right;">${formatDateTime(m.created_at)}</div>
+              <div style="font-size:11px;opacity:${isMine ? "0.72" : "0.64"};margin-top:6px;text-align:right;">${formatDateTime(m.created_at)}</div>
             </div>
           </div>
         `;
