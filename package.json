@@ -1,0 +1,29 @@
+{
+  "name": "edulink-teacher",
+  "version": "1.0.0",
+  "description": "EduLink Teacher PWA - Attendance, messaging, ATP tracking, and schoolwork management",
+  "type": "module",
+  "scripts": {
+    "dev": "vite",
+    "dev:local": "vite --mode local",
+    "dev:test": "vite --mode test",
+    "dev:prod": "vite --mode production",
+    "build": "vite build",
+    "build:test": "vite build --mode test",
+    "build:prod": "vite build --mode production",
+    "preview": "vite preview"
+  },
+  "dependencies": {
+    "@popperjs/core": "^2.11.8",
+    "bootstrap": "^5.3.2",
+    "bootstrap-icons": "^1.11.3",
+    "firebase": "^10.7.2",
+    "framework7": "^9.0.2",
+    "laravel-echo": "^2.3.0",
+    "pusher-js": "^8.4.0"
+  },
+  "devDependencies": {
+    "vite": "^5.0.11",
+    "vite-plugin-pwa": "^1.2.0"
+  }
+}
