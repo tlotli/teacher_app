@@ -146,10 +146,14 @@ class TeacherWebSocketService {
   }
 
   _doSubscribeToThread(threadId, onMessage) {
-    this.echo.private(`message-thread.${threadId}`).listen(".message.sent", (e) => {
-      console.log("📬 Real-time message in teacher thread", threadId, e);
-      onMessage(e);
-    });
+    // Leave first so Echo doesn't accumulate duplicate .listen() handlers
+    this.echo.leave(`message-thread.${threadId}`);
+    this.echo
+      .private(`message-thread.${threadId}`)
+      .listen(".message.sent", (e) => {
+        console.log("📬 Real-time message in teacher thread", threadId, e);
+        onMessage(e);
+      });
   }
 
   unsubscribeFromThread(threadId) {
