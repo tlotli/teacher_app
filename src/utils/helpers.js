@@ -1,16 +1,18 @@
 /**
  * Utility helpers
  */
+const TZ = "Africa/Johannesburg";
+
 export function formatDate(dateStr) {
   if (!dateStr) return "";
   const d = new Date(dateStr);
-  return d.toLocaleDateString("en-ZA", { day: "numeric", month: "short", year: "numeric" });
+  return d.toLocaleDateString("en-ZA", { day: "numeric", month: "short", year: "numeric", timeZone: TZ });
 }
 
 export function formatTime(dateStr) {
   if (!dateStr) return "";
   const d = new Date(dateStr);
-  return d.toLocaleTimeString("en-ZA", { hour: "2-digit", minute: "2-digit" });
+  return d.toLocaleTimeString("en-ZA", { hour: "2-digit", minute: "2-digit", timeZone: TZ });
 }
 
 export function formatDateTime(dateStr) {
