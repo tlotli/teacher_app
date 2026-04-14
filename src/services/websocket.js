@@ -28,7 +28,11 @@ class TeacherWebSocketService {
     this._reconnectTimer = null;
 
     if (this._currentToken === authToken && this.echo !== null) {
-      return this.echo;
+      const state = this.echo.connector?.pusher?.connection?.state;
+      if (state === "connected" || state === "connecting") {
+        return this.echo;
+      }
+      // Dead/stale instance — fall through to teardown and recreate
     }
 
     if (this.echo) this._teardown();
@@ -79,8 +83,16 @@ class TeacherWebSocketService {
       this._scheduleReconnect();
     };
     this._pusherErrorHandler = () => { this.isConnected = false; };
-    this._pusherUnavailableHandler = () => { this.isConnected = false; };
-    this._pusherFailedHandler = () => { this.isConnected = false; };
+    this._pusherUnavailableHandler = () => {
+      console.warn("⚠️ Teacher WS unavailable — scheduling reconnect");
+      this.isConnected = false;
+      this._scheduleReconnect();
+    };
+    this._pusherFailedHandler = () => {
+      console.error("❌ Teacher WS failed — scheduling reconnect");
+      this.isConnected = false;
+      this._scheduleReconnect();
+    };
 
     const conn = this.echo.connector.pusher.connection;
     conn.bind("connected", this._pusherConnectedHandler);
@@ -88,6 +100,9 @@ class TeacherWebSocketService {
     conn.bind("error", this._pusherErrorHandler);
     conn.bind("unavailable", this._pusherUnavailableHandler);
     conn.bind("failed", this._pusherFailedHandler);
+    conn.bind("state_change", (states) => {
+      console.log(`🔄 Teacher WS state: ${states.previous} → ${states.current}`);
+    });
 
     console.log("✅ Teacher WebSocket initialized");
     return this.echo;
@@ -130,19 +145,19 @@ class TeacherWebSocketService {
    * Queued and replayed automatically if WebSocket isn't connected yet.
    */
   subscribeToThread(threadId, onMessage) {
+    this._threadSubs.set(threadId, onMessage);
+
     if (!this.echo) {
       const token = storage.getAuthToken();
       if (token) this.initialize(token);
     }
 
-    // Always register so it survives reconnects and deferred connects
-    this._threadSubs.set(threadId, onMessage);
-
-    if (!this.isConnected) {
-      console.log(`⏳ Teacher thread ${threadId} subscription queued until WebSocket connects`);
-      return;
+    if (this.echo) {
+      // Subscribe immediately; Pusher queues internally if not yet connected
+      this._doSubscribeToThread(threadId, onMessage);
+    } else {
+      console.log(`⏳ Teacher thread ${threadId} queued — no echo instance yet`);
     }
-    this._doSubscribeToThread(threadId, onMessage);
   }
 
   _doSubscribeToThread(threadId, onMessage) {
